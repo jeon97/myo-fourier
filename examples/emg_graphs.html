@@ -6,7 +6,9 @@
 		<script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 		<script src="http://cdnjs.cloudflare.com/ajax/libs/flot/0.8.2/jquery.flot.min.js"></script>
 		<script src='../myo.js'></script>
-
+		<script language="javascript" src="js/processing.js"></script>
+    	<script language="javascript" src="js/init.js"></script>
+    	<script language="javascript" src="../dsp.js"></script>
 		<style>
 			body{
 				background-color : #0A0A0A;
@@ -16,6 +18,7 @@
 			.plot{
 				width:500px;
 				height:200px;
+
 				display : inline-block;
 			}
 
@@ -41,10 +44,16 @@
 	</head>
 	<body>
 		<title>EMG Graphs - Myo.js</title>
-		<div style='display:inline-block'>
-			<div>Pod 0</div>
+		<div >
+			<div>Raw</div>
 			<div id='pod0' class='plot' ></div>
 		</div>
+	</br>
+	</br>
+	</br>
+	</br>
+	</br>
+	<p> After Fourier Transform </p>
 		<div style='display:inline-block'>
 			<div>Pod 1</div>
 			<div id='pod1' class='plot' ></div>
@@ -56,23 +65,6 @@
 		<div style='display:inline-block'>
 			<div>Pod 3</div>
 			<div id='pod3' class='plot' ></div>
-		</div>
-		<div style='display:inline-block'>
-			<div>Pod 4</div>
-			<div id='pod4' class='plot' ></div>
-		</div>
-
-		<div style='display:inline-block'>
-			<div>Pod 5</div>
-			<div id='pod5' class='plot' ></div>
-		</div>
-		<div style='display:inline-block'>
-			<div>Pod 6</div>
-			<div id='pod6' class='plot' ></div>
-		</div>
-		<div style='display:inline-block'>
-			<div>Pod 7</div>
-			<div id='pod7' class='plot' ></div>
 		</div>
 
 	</body>
@@ -129,19 +121,48 @@
 			return graph;
 		}
 
-		var podGraphs = _.times(8, function(num){
+		var podGraphs = _.times(4, function(num){
 			return createGraph('pod' + num, {data:0}, 128, 50);
 		})
 
+		var buffer = []
+		for (var i=0;i<32;i++){
+          buffer[i] = 0
+        }
+
 		var throttledEMGUpdate = _.throttle(function(data){
-			_.each(data, function(emgData, index){
-				podGraphs[index].addData({data:emgData});
-				
-			})
-		}, 20);
+				podGraphs[0].addData({data:data});
+				var newBuffer = []
+				for (var i=0;i<31;i++){
+          			newBuffer[i] = buffer[i+1]
+        		}
+				newBuffer.push(data)
+				buffer = newBuffer
+				fourier()
+		}, 50);
+
+		
+		function fourier() {
+    		//console.log(buffer)
+    		var fft = new FFT(32, 20);
+    		fft.forward(buffer);
+    		var array = []
+    		var sortArray = []
+    		for (var i=0;i<16;i++){
+          		array[i] = fft.spectrum[i]
+          		sortArray[i] = fft.spectrum[i]
+        	}
+    		sortArray.sort()
+    		plotFourier([array.indexOf(sortArray[15]), sortArray[15]], [array.indexOf(sortArray[14]), sortArray[14]], [array.indexOf(sortArray[13]), sortArray[13]])
+        	console.log(array)
+		}
+
+		function plotFourier(a, b, c) {
+    		console.log(a)
+		}
 
 		myo.on('emg', function(data){
-			throttledEMGUpdate(data);
+			throttledEMGUpdate(data[6]);
 
 		});
 

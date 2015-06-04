@@ -3,8 +3,11 @@
 <head>
   <meta charset="utf-8">
   <script src="../lib/complex_array.js"></script>
-  <script src="fft.js"></script>
+  <script src="../lib/fft.js"></script>
   <link rel="stylesheet" href="example.css">
+  <script language="javascript" src="js/processing.js"></script>
+    <script language="javascript" src="js/init.js"></script>
+    <script language="javascript" src="../dsp.js"></script>
   <title></title>
 </head>
 <body>
@@ -24,6 +27,15 @@ data.map(function(value, i, n) {
     <div id="fft" class="example"></div>
     <div class="explanation">
       Transform (in place):<br>
+      <code>
+        data.FFT()
+      </code>
+    </div>
+  </div>
+  <div class="panel">
+    <div id="new" class="example"></div>
+    <div class="explanation">
+      poop:<br>
       <code>
         data.FFT()
       </code>
@@ -93,33 +105,39 @@ data.frequencyMap(function(freq, i, n) {
       }
 
       window.onload = function() {
-        var
-          data = new complex_array.ComplexArray(128)
+        // var data = new complex_array.ComplexArray(128)
 
-        data.map(function(value, i, n) {
-          value.real = (i > n/3 && i < 2*n/3) ? 1 : 0
-        })
+        // data.map(function(value, i, n) {
+        //   value.real = 4*Math.sin(5*i) + 3*Math.cos(2*i)
+        // })
 
-        drawToCanvas('original', data)
-
+        // drawToCanvas('original', data)
+        // console.log(data)
+        // data.FFT()
+        
+        // var str = ''
+        // data.frequencyMap(function(freq, i, n) {
+        //   //array.push(Math.sqrt(freq.real*freq.real + freq.imag*freq.imag))
+        //   str+='\n'+freq.real
+        // })
+        // console.log(str)
+        
+        var data = []
+        for (var i=0;i<32;i++){
+          data[i] = 5*Math.sin(i*(2*Math.PI/5))
+        }
         console.log(data)
-        data.FFT()
-        drawToCanvas('fft', data)
-        data.map(function(freq, i, n) {
-          if (i > n/5 && i < 4*n/5) {
-            freq.real = 0
-            freq.imag = 0
-          }
-        })
-        drawToCanvas('fft_filtered', data)
-        drawToCanvas('original_filtered', data.InvFFT())
 
-        drawToCanvas('all_in_one', data.frequencyMap(function(freq, i, n) {
-          if (i > n/5 && i < 4*n/5) {
-            freq.real = 0
-            freq.imag = 0
+        var fft = new FFT(32, 10);
+        fft.forward(data);
+        var array = []
+        var sortArray = []
+        for (var i=0;i<16;i++){
+              array[i] = fft.spectrum[i]
+              sortArray[i] = fft.spectrum[i]
           }
-        }))
+        sortArray.sort()
+        console.log([sortArray[15], array.indexOf(sortArray[15])])
       }
     }()
   </script>
